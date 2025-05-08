@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.Extensions.Hosting;
 using Azure.AI.OpenAI;
@@ -55,7 +55,8 @@ builder.Services.AddTransient<ChatCompletionAgent>(sp =>
             ## Greeting the user
             Use the 'SayHello' tool to greet the user.
             """,
-        Kernel = sp.GetRequiredService<Kernel>()
+        Kernel = sp.GetRequiredService<Kernel>(),
+        Arguments = new KernelArguments(new AzureOpenAIPromptExecutionSettings { FunctionChoiceBehavior = FunctionChoiceBehavior.Auto() }),
     };
 });
 
@@ -75,8 +76,10 @@ while(true)
     {
         break;
     }
-    await foreach(var response in agent.InvokeAsync(new ChatMessageContent(AuthorRole.User, content: userInput)))
+    Console.WriteLine("Bot: ");
+    await foreach(var response in agent.InvokeStreamingAsync(new ChatMessageContent(AuthorRole.User, content: userInput)))
     {
-        Console.WriteLine(response.Message);
+        Console.Write($"{response.Message}");
     }
+    Console.WriteLine();
 }

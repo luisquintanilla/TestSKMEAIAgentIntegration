@@ -26,6 +26,9 @@
     <Reference Include="Microsoft.SemanticKernel.Agents.Core">
       <HintPath>..\SKMEAIntegration\dotnet\src\Agents\Core\bin\Release\netstandard2.0\Microsoft.SemanticKernel.Agents.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI">
+      <HintPath>..\SKMEAIntegration\dotnet\src\Connectors\Connectors.AzureOpenAI\bin\Release\netstandard2.0\Microsoft.SemanticKernel.Connectors.AzureOpenAI.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.SemanticKernel.Connectors.OpenAI">
       <HintPath>..\SKMEAIntegration\dotnet\src\Connectors\Connectors.OpenAI\bin\Release\netstandard2.0\Microsoft.SemanticKernel.Connectors.OpenAI.dll</HintPath>
     </Reference>
