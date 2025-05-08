@@ -20,10 +20,10 @@ string SayHello([Description("The user name")] string username)
     return $"Hello, {username}! How can I assist you today?";
 }
 
-builder
-    .Services
-    .AddKernel()
-    .Services
+var kernel = builder.Services.AddKernel();
+
+kernel.Plugins.AddFromFunctions("SayHello", [AIFunctionFactory.Create(SayHello).AsKernelFunction()]);
+kernel.Services
     .AddTransient<IChatClient>((sp) =>
     {
         return new ChatClientBuilder(
@@ -32,11 +32,6 @@ builder
                 new DefaultAzureCredential())
                 .GetChatClient("gpt-4o-mini")
                 .AsIChatClient())
-            .UseFunctionInvocation()
-            .ConfigureOptions(_ =>
-                _.Tools = [
-                    AIFunctionFactory.Create(SayHello)
-                ])
             .Build()
             .AsKernelFunctionInvokingChatClient();
     });
