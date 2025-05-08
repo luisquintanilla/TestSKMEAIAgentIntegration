@@ -57,7 +57,7 @@ builder.Services.AddTransient<ChatCompletionAgent>(sp =>
             """,
         Kernel = sp.GetRequiredService<Kernel>()
     };
-}); 
+});
 
 var app = builder.Build();
 
@@ -65,18 +65,17 @@ var agent = app.Services.GetService<ChatCompletionAgent>();
 
 while(true)
 {
-    Console.Write("You: ");
-    string? userInput = Console.ReadLine();
-
-    if (string.Equals(userInput, "exit", StringComparison.OrdinalIgnoreCase))
+    Console.Write("User: ");
+    var userInput = Console.ReadLine();
+    if(string.IsNullOrEmpty(userInput))
     {
-        Console.WriteLine("Goodbye!");
         break;
     }
-
-    ChatMessageContent message = new(AuthorRole.User, userInput);
-
-    await foreach(AgentResponseItem<ChatMessageContent> response in agent.InvokeAsync(message))
+    if(userInput.Equals("exit", StringComparison.OrdinalIgnoreCase))
+    {
+        break;
+    }
+    await foreach(var response in agent.InvokeAsync(new ChatMessageContent(AuthorRole.User, content: userInput)))
     {
         Console.WriteLine(response.Message);
     }
