@@ -11,18 +11,32 @@ using Microsoft.Extensions.AI;
 using System.ComponentModel;
 using OpenAI.Chat;
 using ChatMessageContent = Microsoft.SemanticKernel.ChatMessageContent;
+using System.Text;
+using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
+using System.Threading.Tasks;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
-[Description("A tool to greet users")]
-string SayHello([Description("The user name")] string username)
+[Description("Greets user with name")]
+string SayHello([Description("The user's name")] string name)
 {
-    return $"Hello, {username}! How can I assist you today?";
+    return $"Hello, {name}! How can I assist you today?";
+}
+
+[Description("Plans a trip to the provided destination")]
+async Task<string> PlanTrip([Description("The destination for the trip")] string destination, Kernel k)
+{
+    var cc = k.Services.GetKeyedService<ChatCompletionAgent>("travelagent");
+    var sb = new StringBuilder();
+    await foreach (var response in cc.InvokeAsync(new ChatMessageContent(AuthorRole.User, content: $"Plan a trip to {destination}"), new ChatHistoryAgentThread()))
+    {
+        sb.AppendLine(response.Message.Content);
+    }
+    return sb.ToString();
 }
 
 var kernel = builder.Services.AddKernel();
 
-kernel.Plugins.AddFromFunctions("SayHello", [AIFunctionFactory.Create(SayHello).AsKernelFunction()]);
 kernel.Services
     .AddTransient<IChatClient>((sp) =>
     {
@@ -36,29 +50,37 @@ kernel.Services
             .AsKernelFunctionInvokingChatClient();
     });
 
-builder.Services.AddTransient<ChatCompletionAgent>(sp =>
-{
+builder.Services.AddKeyedTransient<ChatCompletionAgent>("userliaison",(sp,_) => {
+    var kernel = sp.GetRequiredService<Kernel>().Clone();
+    kernel.Plugins.AddFromFunctions("SayHello", [
+        AIFunctionFactory.Create(SayHello).AsKernelFunction(),
+        AIFunctionFactory.Create(PlanTrip).AsKernelFunction()]);
+    var agent = new ChatCompletionAgent
+    {
+        Name = "UserLiaisonAgent",
+        Description = "A user liaison agent that helps users with travel plans and expense reports.",
+        Instructions = "Help users come up with a travel itinerary",
+        Kernel = kernel.Clone(),
+        Arguments = new KernelArguments(new AzureOpenAIPromptExecutionSettings { FunctionChoiceBehavior = FunctionChoiceBehavior.Auto() }),
+    };
+    return agent;
+});
+
+kernel.Services.AddKeyedTransient<ChatCompletionAgent>("travelagent", (sp,_) => {
     return new ChatCompletionAgent
     {
-        Name = "UserLiaison",
+        Name = "TravelAgent",
         Description = "A travel agent that helps users with travel plans and expense reports.",
-        Instructions =
-            """
-            ## User liaison agent
-            You are a travel agent, liaising with a user, '{{userName}}'.
-
-            ## Greeting the user
-            Use the 'SayHello' tool to greet the user.
-            """,
-        Kernel = sp.GetRequiredService<Kernel>(),
+        Instructions = "Help users come up with a travel itinerary",
+        Kernel = sp.GetRequiredService<Kernel>().Clone(),
         Arguments = new KernelArguments(new AzureOpenAIPromptExecutionSettings { FunctionChoiceBehavior = FunctionChoiceBehavior.Auto() }),
     };
 });
 
 var app = builder.Build();
 
-var agent = app.Services.GetService<ChatCompletionAgent>();
-
+var agent = app.Services.GetKeyedService<ChatCompletionAgent>("userliaison");
+var thread = new ChatHistoryAgentThread();
 while(true)
 {
     Console.Write("User: ");
@@ -72,9 +94,9 @@ while(true)
         break;
     }
     Console.WriteLine("Bot: ");
-    await foreach(var response in agent.InvokeStreamingAsync(new ChatMessageContent(AuthorRole.User, content: userInput)))
+    await foreach(var response in agent.InvokeAsync(new ChatMessageContent(AuthorRole.User, content: userInput),thread))
     {
-        Console.Write($"{response.Message}");
+        Console.Write($"{response.Message.Content}");
     }
     Console.WriteLine();
 }
