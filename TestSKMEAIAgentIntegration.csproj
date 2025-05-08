@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.AI.OpenAI" Version="2.2.0-beta.4" />
+    <PackageReference Include="Azure.Identity" Version="1.14.0-beta.4" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.AI" Version="9.4.3-preview.1.25230.7" />
+    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="9.4.3-preview.1.25230.7" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.SemanticKernel.Abstractions">
+      <HintPath>..\SKMEAIntegration\dotnet\src\SemanticKernel.Abstractions\bin\Release\netstandard2.0\Microsoft.SemanticKernel.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SemanticKernel.Agents.Abstractions">
+      <HintPath>..\SKMEAIntegration\dotnet\src\Agents\Core\bin\Release\netstandard2.0\Microsoft.SemanticKernel.Agents.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SemanticKernel.Agents.Core">
+      <HintPath>..\SKMEAIntegration\dotnet\src\Agents\Core\bin\Release\netstandard2.0\Microsoft.SemanticKernel.Agents.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SemanticKernel.Connectors.OpenAI">
+      <HintPath>..\SKMEAIntegration\dotnet\src\Connectors\Connectors.OpenAI\bin\Release\netstandard2.0\Microsoft.SemanticKernel.Connectors.OpenAI.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SemanticKernel.Core">
+      <HintPath>..\SKMEAIntegration\dotnet\src\Agents\Core\bin\Release\netstandard2.0\Microsoft.SemanticKernel.Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
